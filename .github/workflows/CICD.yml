@@ -5,44 +5,52 @@ on:
     branches: [ "main" ]
 
 jobs:
-#step 1: Compile job
+
+# Step 1: Compile job
   compile:
     name: compile java project
     runs-on: ubuntu-latest
     steps:
-    # checkout the code from the repository
-    - uses: actions/checkout@v4
-    # set up JDK 17 install
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-    # Compile the project   
-    - name: compile with Maven
-      run: mvn compile
-#step 2: Security scan job
+      # Checkout the code from the repository
+      - uses: actions/checkout@v4
+
+      # Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # Compile the project
+      - name: Compile with Maven
+        run: mvn compile
+
+
+# Step 2: Security scan job
   security-scan:
     name: security scan with trivy
-    runs--on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
-    # checkout the code from the repository
-    - uses: actions/checkout@v4
-    # Install Trivy
-    - name: Install Trivy
-      run: |
-        sudo apt-get install wget gnupg -y
-        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-        echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-        sudo apt-get update
-        sudo apt-get install trivy -y
-    # Run Trivy scan filesystem
-    - name: Run trivy scan
-      run: trivy fs --format table -o fs-report.txt .
-    # upload the report as an artifact
-    - name: upload trivy report
-      uses: actions/upload-artifact@v3
-      with:
-        name: trivy-fs-report
-        path: fs-report.txt
+      # Checkout the code from the repository
+      - uses: actions/checkout@v4
+
+      # Install Trivy
+      - name: Install Trivy
+        run: |
+          sudo apt-get install wget gnupg -y
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy -y
+
+      # Run Trivy filesystem scan
+      - name: Run trivy scan
+        run: trivy fs --format table -o fs-report.txt .
+
+      # Upload the report as artifact
+      - name: Upload trivy report
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-fs-report
+          path: fs-report.txt
